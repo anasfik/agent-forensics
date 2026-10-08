@@ -1,0 +1,14 @@
+{
+  "data": {
+    "info": { "id": "ses_reread", "title": "reread demo", "time": { "created": 1000, "updated": 9000 } },
+    "messages": [
+      { "type": "user", "id": "m1", "text": "look", "time": { "created": 1000 } },
+      { "type": "assistant", "id": "m2", "time": { "created": 2000, "completed": 8000 }, "content": [
+        { "type": "tool", "id": "t1", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "same content" }, "time": { "created": 2000, "ran": 2100, "completed": 2200 } },
+        { "type": "tool", "id": "t2", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "same content" }, "time": { "created": 3000, "ran": 3100, "completed": 3200 } },
+        { "type": "tool", "id": "t3", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "same content" }, "time": { "created": 4000, "ran": 4100, "completed": 4200 } },
+        { "type": "tool", "id": "t4", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "same content" }, "time": { "created": 5000, "ran": 5100, "completed": 5200 } }
+      ] }
+    ]
+  }
+}

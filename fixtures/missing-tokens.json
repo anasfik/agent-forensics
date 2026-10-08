@@ -1,0 +1,11 @@
+{
+  "data": {
+    "info": { "id": "ses_no_tokens", "title": "no tokens", "time": { "created": 1000, "updated": 5000 } },
+    "messages": [
+      { "type": "user", "id": "m1", "text": "hi", "time": { "created": 1000 } },
+      { "type": "assistant", "id": "m2", "time": { "created": 2000, "completed": 4000 }, "content": [
+        { "type": "tool", "id": "t1", "name": "bash", "state": { "status": "completed", "input": { "command": "ls" }, "output": "ok" }, "time": { "created": 2000, "ran": 2100, "completed": 2200 } }
+      ] }
+    ]
+  }
+}

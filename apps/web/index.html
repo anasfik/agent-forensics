@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Forensics</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230b5fff'/><path d='M8 22 13 9h6l5 13h-5l-1-3h-5l-1 3zm6-7h3l-1.5-5z' fill='white'/></svg>">
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--line:#e2e2e2;--card:#f7f7f7;--acc:#0b5fff;--warn:#9a5b00;--crit:#b00020;--ok:#0d7a3f}
+@media(prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--mut:#b8b8b8;--line:#595959;--card:#1e1e1e;--acc:#8fb0ff;--warn:#ffb454;--crit:#ff6b81;--ok:#65d795}}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif;margin:0}
+header{border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}nav{display:flex;gap:4px;flex-wrap:wrap}
+header h1{font-size:14px;margin:0}button{min-height:32px}nav button{background:none;border:1px solid var(--line);color:var(--fg);padding:6px 10px;border-radius:6px;cursor:pointer}
+nav button[aria-current="true"]{border-color:var(--acc);color:var(--acc)}
+main{padding:16px;max-width:1100px;margin:0 auto}
+input,select{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}::placeholder{color:var(--mut);opacity:1}
+.table-scroll{max-width:100%;overflow-x:auto}.table-scroll table{min-width:760px}table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:0 8px;font-size:12px}
+.b-crit{color:var(--crit);border-color:var(--crit)}.b-warn{color:var(--warn);border-color:var(--warn)}.b-info{color:var(--acc);border-color:var(--acc)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;max-height:300px;overflow:auto}
+.ev{display:grid;grid-template-columns:220px 1fr;gap:12px}.evlist{max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.evlist button{display:block;width:100%;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);color:var(--fg);padding:6px 8px;cursor:pointer}
+.evlist button[aria-selected="true"]{background:var(--card)}
+.open-session{background:none;color:var(--fg);border:0;text-align:start;padding:0;cursor:pointer}#v-sessions>p{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+:focus-visible{outline:2px solid var(--acc)}
+@media(max-width:800px){.cols,.ev{grid-template-columns:1fr}}
+@media(pointer:coarse){button,input,select{min-height:44px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Agent Forensics</h1>
+<nav aria-label="views">
+<button data-v="sessions" aria-current="true">Sessions</button>
+<button data-v="inspector" aria-current="false">Inspector</button>
+<button data-v="diagnostics" aria-current="false">Diagnostics</button>
+<button data-v="compare" aria-current="false">Compare</button>
+</nav>
+<span class="badge">local-only · redacted</span>
+</header>
+<main>
+<p id="status" role="status" aria-live="polite"></p>
+<section id="v-sessions">
+<h2>Sessions</h2>
+<p><input id="q" type="search" placeholder="Search (/)" aria-label="Search sessions"> <select id="sort" aria-label="Sort sessions"><option value="imported">Newest</option><option value="errors">Most errors</option><option value="events">Most events</option><option value="title">Title</option></select> <span id="count"></span></p>
+<div class="table-scroll" role="region" aria-label="Imported sessions" tabindex="0"><table><thead><tr><th>ID / title</th><th>Status</th><th>Model</th><th>Duration</th><th>Events</th><th>Tokens</th><th>Imported</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section id="v-inspector" hidden>
+<h2>Session Inspector</h2>
+<p><select id="sel" aria-label="Session"></select> <input id="fq" type="search" placeholder="Filter events" aria-label="Filter events"></p>
+<div class="ev"><div class="evlist" id="evlist" role="listbox" aria-label="Events"></div><div class="card" aria-live="polite"><h3 id="evtitle" tabindex="-1">Select an event</h3><pre id="evbody"></pre></div></div>
+</section>
+<section id="v-diagnostics" hidden>
+<h2>Diagnostics</h2>
+<p><select id="dsel" aria-label="Session for diagnostics"></select></p>
+<div id="findings" aria-live="polite"></div>
+</section>
+<section id="v-compare" hidden>
+<h2>Compare Runs</h2>
+<p><select id="ca" aria-label="Run A"></select> <select id="cb" aria-label="Run B"></select> <button id="go">Compare</button></p>
+<div id="crep" aria-live="polite"></div>
+<div class="cols"><div class="card"><h3>Only in A</h3><pre id="ua"></pre></div><div class="card"><h3>Only in B</h3><pre id="ub"></pre></div></div>
+<div class="card" style="margin-top:12px"><h3>Aligned operations</h3><table><thead><tr><th>A</th><th>Match</th><th>B</th></tr></thead><tbody id="alignment"></tbody></table></div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let SESS=[],EV=null;
+const note=(text,error=false)=>{const n=$("#status");n.textContent=text;n.setAttribute("role",error?"alert":"status")};
+async function j(u){const r=await fetch(u);if(!r.ok)throw new Error(`${u} returned ${r.status}`);return r.json()}
+function show(v){for(const b of document.querySelectorAll("nav button"))b.setAttribute("aria-current",b.dataset.v===v?"true":"false");for(const s of["sessions","inspector","diagnostics","compare"])$("#v-"+s).hidden=s!==v}
+async function hashView(){const raw=(location.hash||"#sessions").slice(1),v=["sessions","inspector","diagnostics","compare"].includes(raw)?raw:"sessions";show(v);if(v==="inspector"&&$("#sel").value)await inspect($("#sel").value);if(v==="diagnostics"&&$("#dsel").value)await diag($("#dsel").value)}
+function navigate(v){if(location.hash===`#${v}`)hashView();else location.hash=v}
+window.addEventListener("hashchange",hashView);document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>navigate(b.dataset.v));
+document.addEventListener("keydown",e=>{if(e.key==="/"&&document.activeElement.tagName!=="INPUT"){e.preventDefault();navigate("sessions");$("#q").focus()}});
+async function loadSessions(){try{SESS=(await j("/api/sessions")).sessions||[];note("")}catch(e){SESS=[];note(`Could not load sessions: ${e.message}`,true)}
+$("#count").textContent=SESS.length+" imported";const q=($("#q").value||"").toLowerCase(),sort=$("#sort").value;
+const rows=SESS.filter(s=>(s.id+s.title+(s.model||"")).toLowerCase().includes(q)).sort((a,b)=>sort==="errors"?b.errors-a.errors:sort==="events"?b.events-a.events:sort==="title"?(a.title||"").localeCompare(b.title||""):(b.importedAt||"").localeCompare(a.importedAt||""));
+$("#rows").innerHTML=rows.length?rows.map(s=>`<tr><td><button class="open-session" data-id="${esc(s.id)}"><code>${esc(s.id)}</code><br>${esc(s.title||"")}</button></td><td><span class="badge ${s.errors?"b-warn":""}">${esc(s.status)}</span></td><td>${esc(s.model||"unknown")}</td><td>${s.durationMs==null?"unknown":Math.round(s.durationMs/1000)+"s"}</td><td>${s.events}</td><td>${s.tokens??"unknown"}</td><td>${new Date(s.importedAt).toLocaleString()}</td></tr>`).join(""):`<tr><td colspan="7">${q?"No matching sessions.":"No sessions imported yet."}</td></tr>`;
+for(const b of document.querySelectorAll(".open-session"))b.onclick=()=>openEvidence(b.dataset.id,null);for(const id of["#sel","#dsel","#ca","#cb"])$(id).innerHTML=SESS.map(s=>`<option value="${esc(s.id)}">${esc(s.id)}</option>`).join("")}
+$("#q").oninput=loadSessions;$("#sort").onchange=loadSessions;
+async function inspect(id){try{note("Loading session…");EV=await j("/api/session?id="+encodeURIComponent(id));renderEv("");note(`${EV.eventCount} events loaded`)}catch(e){note(`Could not load session: ${e.message}`,true)}}
+function selectEvent(id,focus=false){const e=EV?.events.find(x=>x.eventId===id);if(!e)return;for(const x of $("#evlist").querySelectorAll("button")){const on=x.dataset.id===id;x.setAttribute("aria-selected",on?"true":"false");x.tabIndex=on?0:-1;if(on&&focus){x.scrollIntoView({block:"nearest"});x.focus()}}$("#evtitle").textContent=`#${e.seq} ${e.toolName||e.category} [${e.status}]`;$("#evbody").textContent=JSON.stringify(e,null,2);if(focus)$("#evtitle").focus()}
+function renderEv(f){const list=EV.events.filter(e=>!f||(String(e.toolName)+e.status+e.eventId+e.category).toLowerCase().includes(f.toLowerCase())).slice(0,400);$("#evlist").innerHTML=list.length?list.map((e,i)=>`<button data-id="${esc(e.eventId)}" role="option" aria-selected="false" tabindex="${i?"-1":"0"}">#${e.seq} ${esc(e.category)} ${esc(e.toolName||"")} [${esc(e.status)}]</button>`).join(""):"<p>No matching events.</p>";
+const buttons=[...$("#evlist").querySelectorAll("button")];buttons.forEach((b,i)=>{b.onclick=()=>selectEvent(b.dataset.id);b.onkeydown=e=>{const d=e.key==="ArrowDown"?1:e.key==="ArrowUp"?-1:0;if(d){e.preventDefault();const n=buttons[(i+d+buttons.length)%buttons.length];n.tabIndex=0;b.tabIndex=-1;n.focus()}}})}
+async function openEvidence(session,id){show("inspector");if(location.hash!=="#inspector")history.pushState(null,"","#inspector");$("#sel").value=session;await inspect(session);if(id)selectEvent(id,true)}
+$("#sel").onchange=e=>inspect(e.target.value);$("#fq").oninput=e=>EV&&renderEv(e.target.value);
+async function diag(id){try{note("Running diagnostics…");const r=await j("/api/analysis?id="+encodeURIComponent(id));EV=EV&&EV.sessionId===id?EV:await j("/api/session?id="+encodeURIComponent(id));const sev={critical:0,warning:1,info:2};r.findings.sort((a,b)=>sev[a.severity]-sev[b.severity]||a.ruleId.localeCompare(b.ruleId));let last="";$("#findings").innerHTML=r.findings.map(f=>{const key=`${f.severity} · ${f.ruleId}`,head=key===last?"":`<h3>${esc(key)}</h3>`;last=key;return `${head}<div class="card" style="margin-bottom:8px"><span class="badge ${f.severity==="critical"?"b-crit":f.severity==="warning"?"b-warn":"b-info"}">${esc(f.severity)}</span> <strong>${esc(f.title)}</strong><p>${esc(f.explanation)}</p>Evidence: ${f.evidenceEventIds.map(e=>`<button data-e="${esc(e)}">${esc(e)}</button>`).join(" ")}${f.suggestedNextStep?`<br>Next: ${esc(f.suggestedNextStep)}`:""}</div>`}).join("")||"<p>No findings.</p>";for(const b of $("#findings").querySelectorAll("button"))b.onclick=()=>openEvidence(id,b.dataset.e);note(`${r.findings.length} findings`)}catch(e){note(`Diagnostics failed: ${e.message}`,true)}}
+$("#dsel").onchange=e=>diag(e.target.value);
+$("#go").onclick=async()=>{try{note("Comparing runs…");const a=$("#ca").value,b=$("#cb").value,r=await j("/api/compare?a="+encodeURIComponent(a)+"&b="+encodeURIComponent(b));$("#crep").innerHTML=`<div class="card"><strong>${r.matches} matched · ${r.uniqueA} only in A · ${r.uniqueB} only in B</strong><br>First divergence: A#${r.firstDivergence?.aSeq??"?"} (${esc(r.firstDivergence?.aEventId??"-")}) vs B#${r.firstDivergence?.bSeq??"?"} (${esc(r.firstDivergence?.bEventId??"-")})<br>Token delta: ${r.tokenDelta.delta??"unknown"} · errors A=${r.outcomeDelta.aErrors}, B=${r.outcomeDelta.bErrors}</div>`;const ea=new Map(r.alignment.filter(p=>p.a).map(p=>[p.a.eventId,p.a])),eb=new Map(r.alignment.filter(p=>p.b).map(p=>[p.b.eventId,p.b])),items=(ids,map,session)=>ids.map(id=>{const e=map.get(id);return `<button data-session="${esc(session)}" data-e="${esc(id)}">${e?`#${e.seq} ${esc(e.toolName||e.category)} [${esc(e.status)}]`:esc(id)}</button>`}).join("<br>");$("#ua").innerHTML=items(r.uniqueAEventIds,ea,a)||"None";$("#ub").innerHTML=items(r.uniqueBEventIds,eb,b)||"None";for(const x of document.querySelectorAll("#ua button,#ub button"))x.onclick=()=>openEvidence(x.dataset.session,x.dataset.e);$("#alignment").innerHTML=r.alignment.slice(0,100).map(p=>`<tr><td>${p.a?"#"+p.a.seq+" "+esc(p.a.toolName||p.a.category)+" ["+esc(p.a.status)+"]":"— missing"}</td><td>${p.score===1?"matched":p.score>0?"similar":"different"}</td><td>${p.b?"#"+p.b.seq+" "+esc(p.b.toolName||p.b.category)+" ["+esc(p.b.status)+"]":"— missing"}</td></tr>`).join("");note("Comparison complete")}catch(e){note(`Comparison failed: ${e.message}`,true)}};
+(async()=>{await loadSessions();hashView();if(SESS[0])for(const id of["#sel","#dsel","#ca","#cb"])$(id).value=SESS[0].id})();
+</script>
+</body>
+</html>

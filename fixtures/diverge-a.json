@@ -1,0 +1,14 @@
+{
+  "data": {
+    "info": { "id": "ses_diverge_a", "title": "diverge A", "time": { "created": 1000, "updated": 9000 } },
+    "messages": [
+      { "type": "user", "id": "m1", "text": "task", "time": { "created": 1000 } },
+      { "type": "assistant", "id": "m2", "time": { "created": 2000, "completed": 8000 }, "content": [
+        { "type": "tool", "id": "t1", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "a" }, "time": { "created": 2000, "ran": 2100, "completed": 2200 } },
+        { "type": "tool", "id": "t2", "name": "read", "state": { "status": "completed", "input": { "file": "src/b.ts" }, "output": "b" }, "time": { "created": 2300, "ran": 2350, "completed": 2400 } },
+        { "type": "tool", "id": "t3", "name": "bash", "state": { "status": "completed", "input": { "command": "npm test" }, "output": "pass" }, "time": { "created": 2500, "ran": 2600, "completed": 3000 } },
+        { "type": "tool", "id": "t4", "name": "edit", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "ok" }, "time": { "created": 3100, "ran": 3200, "completed": 3500 } }
+      ] }
+    ]
+  }
+}

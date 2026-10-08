@@ -1,0 +1,40 @@
+{
+  "name": "agent-forensics",
+  "version": "0.1.0",
+  "description": "Local-first deterministic forensics and differential analysis for AI coding-agent sessions (OpenCode-first).",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "agent-forensics": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "apps/web",
+    "docs"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json && rm -f dist/*.test.js dist/*.test.js.map",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cli": "node dist/cli.js",
+    "test:e2e": "node scripts/e2e.mjs",
+    "smoke": "npm run build && node dist/cli.js sessions --data-dir ./data"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.8"
+  },
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": ""
+}

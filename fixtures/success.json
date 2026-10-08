@@ -1,0 +1,16 @@
+{
+  "data": {
+    "info": { "id": "ses_success", "title": "success demo", "agent": "build", "model": { "id": "claude", "providerID": "anthropic" }, "tokens": { "input": 1200, "output": 800, "reasoning": 0, "cache": { "read": 0, "write": 0 } }, "cost": 0.01, "time": { "created": 1000, "updated": 9000 } },
+    "messages": [
+      { "type": "user", "id": "m1", "text": "fix bug", "time": { "created": 1000 } },
+      { "type": "assistant", "id": "m2", "agent": "build", "tokens": { "input": 600, "output": 400, "reasoning": 0, "cache": { "read": 0, "write": 0 } }, "cost": 0.005, "time": { "created": 2000, "completed": 4000 }, "content": [
+        { "type": "tool", "id": "t1", "name": "read", "state": { "status": "completed", "input": { "file": "src/a.ts" }, "output": "content a" }, "time": { "created": 2000, "ran": 2100, "completed": 2200 } },
+        { "type": "tool", "id": "t2", "name": "read", "state": { "status": "completed", "input": { "file": "src/b.ts" }, "output": "content b" }, "time": { "created": 2300, "ran": 2350, "completed": 2400 } }
+      ] },
+      { "type": "assistant", "id": "m3", "agent": "build", "tokens": { "input": 600, "output": 400, "reasoning": 0, "cache": { "read": 0, "write": 0 } }, "cost": 0.005, "time": { "created": 5000, "completed": 8000 }, "content": [
+        { "type": "tool", "id": "t3", "name": "edit", "state": { "status": "completed", "input": { "file": "src/a.ts", "diff": "+fix" }, "output": "ok" }, "time": { "created": 5000, "ran": 5100, "completed": 6000 } },
+        { "type": "tool", "id": "t4", "name": "bash", "state": { "status": "completed", "input": { "command": "npm test" }, "output": "pass" }, "time": { "created": 6100, "ran": 6200, "completed": 7900 } }
+      ] }
+    ]
+  }
+}

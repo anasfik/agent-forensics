@@ -1,0 +1,14 @@
+{
+  "data": {
+    "info": { "id": "ses_fail_loop", "title": "failing loop", "tokens": { "input": 500, "output": 500, "reasoning": 0, "cache": { "read": 0, "write": 0 } }, "time": { "created": 1000, "updated": 9000 } },
+    "messages": [
+      { "type": "user", "id": "m1", "text": "run it", "time": { "created": 1000 } },
+      { "type": "assistant", "id": "m2", "tokens": { "input": 500, "output": 500, "reasoning": 0, "cache": { "read": 0, "write": 0 } }, "time": { "created": 2000, "completed": 8000 }, "content": [
+        { "type": "tool", "id": "t1", "name": "bash", "state": { "status": "error", "input": { "command": "npm test" }, "error": "Error: connect ECONNREFUSED 127.0.0.1:3000" }, "time": { "created": 2000, "ran": 2100, "completed": 2500 } },
+        { "type": "tool", "id": "t2", "name": "bash", "state": { "status": "error", "input": { "command": "npm test" }, "error": "Error: connect ECONNREFUSED 127.0.0.1:3000" }, "time": { "created": 3000, "ran": 3100, "completed": 3500 } },
+        { "type": "tool", "id": "t3", "name": "bash", "state": { "status": "error", "input": { "command": "npm test" }, "error": "Error: connect ECONNREFUSED 127.0.0.1:3000" }, "time": { "created": 4000, "ran": 4100, "completed": 4500 } },
+        { "type": "tool", "id": "t4", "name": "bash", "state": { "status": "error", "input": { "command": "npm test" }, "error": "Error: connect ECONNREFUSED 127.0.0.1:3000" }, "time": { "created": 5000, "ran": 5100, "completed": 5500 } }
+      ] }
+    ]
+  }
+}
